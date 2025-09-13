@@ -147,4 +147,4 @@ dist
 
 doc.js
 test_api.js
-test_db.js
+testDB.js
