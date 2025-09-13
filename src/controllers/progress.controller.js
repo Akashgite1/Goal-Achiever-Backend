@@ -6,8 +6,8 @@
 // src/controllers/progress.controller.js
 
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiErrors } from "../utils/APIErros.js";
-import { ApiResponse } from "../utils/APiResponce.js";
+import { apiErrors } from "../utils/apiErrors.js";
+import { apiResponse } from "../utils/apiResponse.js";
 import { Progress } from "../models/progress.model.js"; // assuming you have Progress model
 
 // Log/update progress for a chunk or milestone
@@ -15,7 +15,7 @@ const updateProgress = asyncHandler(async (req, res) => {
     const { userId, goalId, journeyId, chunkId, completed } = req.body;
 
     if (!userId || !goalId || !journeyId || !chunkId) {
-        throw new ApiErrors(400, "All required fields must be provided");
+        throw new apiErrors(400, "All required fields must be provided");
     }
 
     // update existing or create new progress document
@@ -27,7 +27,7 @@ const updateProgress = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, progress, "Progress updated successfully"));
+        .json(new apiResponse(200, progress, "Progress updated successfully"));
 });
 
 // Fetch progress by goal or journey
@@ -50,7 +50,7 @@ const calculateVelocity = asyncHandler(async (req, res) => {
     const { userId, goalId } = req.query;
 
     if (!userId || !goalId) {
-        throw new ApiErrors(400, "userId and goalId are required");
+        throw new apiErrors(400, "userId and goalId are required");
     }
 
     const progressList = await Progress.find({ user: userId, goal: goalId, completed: true });
@@ -72,7 +72,7 @@ const getCompletionRate = asyncHandler(async (req, res) => {
     const { userId, journeyId } = req.query;
 
     if (!userId || !journeyId) {
-        throw new ApiErrors(400, "userId and journeyId are required");
+        throw new apiErrors(400, "userId and journeyId are required");
     }
 
     const totalChunks = await Progress.countDocuments({ user: userId, journey: journeyId });

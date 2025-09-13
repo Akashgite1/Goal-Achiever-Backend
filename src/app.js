@@ -24,12 +24,12 @@ app.use(cookieParser());
 
 // importing all the routes
 import userRoutes from './routes/user.route.js'
-import{analyticsRoutes} from './routes/analytics.route.js'
-import {chatRoutes} from './routes/chat.route.js'
-import {checkInRoutes} from './routes/check-in.route.js'
-import { goalRoutes }   from './routes/goal.route.js';
-import { journeyRoute } from './routes/journy.route.js';
-import { progressRoutes } from './routes/progress.route.js';
+import analyticsRoutes from './routes/analytics.route.js'
+import chatRoutes from './routes/chat.route.js'
+import checkInRoutes from './routes/check-in.route.js'
+import goalRoutes from './routes/goal.route.js';
+import journeyRoute from './routes/journy.route.js';
+import progressRoutes from './routes/progress.route.js';
 
 
 // all Rotutes
@@ -43,3 +43,4 @@ app.use("/api/progress", progressRoutes); // all progress routes prefixed with /
 app.use("/api/auth", authRoutes); // all auth routes prefixed with /api/auth
 
 export { app };
+

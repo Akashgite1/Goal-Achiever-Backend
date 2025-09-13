@@ -144,3 +144,7 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/n
 
 .env
+
+doc.js
+test_api.js
+test_db.js

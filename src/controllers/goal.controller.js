@@ -5,8 +5,8 @@
 // deleteGoal → remove goal & dependencies
 
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiErrors } from "../utils/APIErros.js";
-import { ApiResponse } from "../utils/APiResponce.js";
+import { apiErrors } from "../utils/apiErrors.js";
+import { apiResponse } from "../utils/apiResponse.js";
 import { Goal } from "../models/goal.model.js";
 
 
@@ -15,7 +15,7 @@ const createGoal = asyncHandler(async (req, res) => {
     const { title, description, deadline } = req.body;
 
     if (!title) {
-        throw new ApiErrors(400, "Goal title is required");
+        throw new apiErrors(400, "Goal title is required");
     }
 
     const goal = await Goal.create({
@@ -27,13 +27,13 @@ const createGoal = asyncHandler(async (req, res) => {
 
     return res
         .status(201)
-        .json(new ApiResponse(201, goal, "Goal created successfully"));
+        .json(new apiResponse(201, goal, "Goal created successfully"));
 });
 
 // Get All Goals for Logged-in User
 const getGoals = asyncHandler(async (req, res) => {
     const goals = await Goal.find({ owner: req.user._id }).sort({ createdAt: -1 });
-    return res.status(200).json(new ApiResponse(200, goals, "Goals fetched successfully"));
+    return res.status(200).json(new apiResponse(200, goals, "Goals fetched successfully"));
 });
 
 // Get Goal by ID
@@ -43,10 +43,10 @@ const getGoalById = asyncHandler(async (req, res) => {
     const goal = await Goal.findOne({ _id: goalId, owner: req.user._id });
 
     if (!goal) {
-        throw new ApiErrors(404, "Goal not found");
+        throw new apiErrors(404, "Goal not found");
     }
 
-    return res.status(200).json(new ApiResponse(200, goal, "Goal fetched successfully"));
+    return res.status(200).json(new apiResponse(200, goal, "Goal fetched successfully"));
 });
 
 // Update Goal
@@ -61,10 +61,10 @@ const updateGoal = asyncHandler(async (req, res) => {
     );
 
     if (!goal) {
-        throw new ApiErrors(404, "Goal not found or update failed");
+        throw new apiErrors(404, "Goal not found or update failed");
     }
 
-    return res.status(200).json(new ApiResponse(200, goal, "Goal updated successfully"));
+    return res.status(200).json(new apiResponse(200, goal, "Goal updated successfully"));
 });
 
 // Delete Goal
@@ -74,12 +74,12 @@ const deleteGoal = asyncHandler(async (req, res) => {
     const goal = await Goal.findOneAndDelete({ _id: goalId, owner: req.user._id });
 
     if (!goal) {
-        throw new ApiErrors(404, "Goal not found or delete failed");
+        throw new apiErrors(404, "Goal not found or delete failed");
     }
 
     // TODO: Delete dependencies (progress, comments, etc.) if any
 
-    return res.status(200).json(new ApiResponse(200, null, "Goal deleted successfully"));
+    return res.status(200).json(new apiResponse(200, null, "Goal deleted successfully"));
 });
 
 export { createGoal, getGoals, getGoalById, updateGoal, deleteGoal };

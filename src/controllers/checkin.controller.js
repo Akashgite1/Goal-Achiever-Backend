@@ -8,17 +8,17 @@
 // src/controllers/checkin.controller.js
 
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiErrors } from "../utils/APIErros.js";
-import { ApiResponse } from "../utils/APiResponce.js";
+import { apiErrors } from "../utils/apiErrors.js";
+import { apiResponse } from "../utils/apiResponse.js";
 import { Checkin } from "../models/checkin.model.js";
-import mongoose from "mongoose";
+
 
 // Schedule a new check-in
 const scheduleCheckin = asyncHandler(async (req, res) => {
     const { goalId, frequency, startDate, time } = req.body;
 
     if (!goalId || !frequency || !startDate || !time) {
-        throw new ApiErrors(400, "All fields are required: goalId, frequency, startDate, time");
+        throw new apiErrors(400, "All fields are required: goalId, frequency, startDate, time");
     }
 
     const checkin = await Checkin.create({
@@ -30,7 +30,7 @@ const scheduleCheckin = asyncHandler(async (req, res) => {
         status: "pending" // default status
     });
 
-    return res.status(201).json(new ApiResponse(201, checkin, "Check-in scheduled successfully"));
+    return res.status(201).json(new apiResponse(201, checkin, "Check-in scheduled successfully"));
 });
 
 // Fetch upcoming & past check-ins
@@ -39,7 +39,7 @@ const getCheckins = asyncHandler(async (req, res) => {
         .populate("goal", "title description status")
         .sort({ startDate: 1 });
 
-    return res.status(200).json(new ApiResponse(200, checkins, "Check-ins fetched successfully"));
+    return res.status(200).json(new apiResponse(200, checkins, "Check-ins fetched successfully"));
 });
 
 // Submit or update check-in progress
@@ -49,7 +49,7 @@ const submitCheckin = asyncHandler(async (req, res) => {
 
     const checkin = await Checkin.findOne({ _id: id, user: req.user._id });
 
-    if (!checkin) throw new ApiErrors(404, "Check-in not found");
+    if (!checkin) throw new apiErrors(404, "Check-in not found");
 
     checkin.progress = progress || checkin.progress;
     checkin.notes = notes || checkin.notes;
@@ -58,7 +58,7 @@ const submitCheckin = asyncHandler(async (req, res) => {
 
     await checkin.save();
 
-    return res.status(200).json(new ApiResponse(200, checkin, "Check-in submitted successfully"));
+    return res.status(200).json(new apiResponse(200, checkin, "Check-in submitted successfully"));
 });
 
 // Update/reschedule check-in
@@ -68,7 +68,7 @@ const updateCheckin = asyncHandler(async (req, res) => {
 
     const checkin = await Checkin.findOne({ _id: id, user: req.user._id });
 
-    if (!checkin) throw new ApiErrors(404, "Check-in not found");
+    if (!checkin) throw new apiErrors(404, "Check-in not found");
 
     if (frequency) checkin.frequency = frequency;
     if (startDate) checkin.startDate = startDate;
@@ -76,7 +76,7 @@ const updateCheckin = asyncHandler(async (req, res) => {
 
     await checkin.save();
 
-    return res.status(200).json(new ApiResponse(200, checkin, "Check-in updated successfully"));
+    return res.status(200).json(new apiResponse(200, checkin, "Check-in updated successfully"));
 });
 
 // Cancel check-in
@@ -85,9 +85,9 @@ const deleteCheckin = asyncHandler(async (req, res) => {
 
     const checkin = await Checkin.findOneAndDelete({ _id: id, user: req.user._id });
 
-    if (!checkin) throw new ApiErrors(404, "Check-in not found or already deleted");
+    if (!checkin) throw new apiErrors(404, "Check-in not found or already deleted");
 
-    return res.status(200).json(new ApiResponse(200, null, "Check-in canceled successfully"));
+    return res.status(200).json(new apiResponse(200, null, "Check-in canceled successfully"));
 });
 
 export { scheduleCheckin, getCheckins, submitCheckin, updateCheckin, deleteCheckin };

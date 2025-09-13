@@ -1,27 +1,23 @@
-// 5. Tutor / Chat Routes
-
-// /api/tutor
-// POST /start-session → startSession
-// POST /send-message → sendMessage
-// GET /history/:sessionId → getSessionHistory
-
-
 import express from "express";
-import { startSession, sendMessage, getSessionHistory } from "../controllers/chat.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import {
+  startSession,
+  sendMessage,
+  getSessionHistory,
+  generatePracticeProblems,
+  summarizeSession,
+} from "../controllers/chat.controller.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Protected routes – user must be authenticated
+// ✅ Protect all chat/tutor session routes
 router.use(verifyJWT);
 
-// Start a new tutor session
-router.post("/start-session", startSession);
-
-// Send message to AI / tutor
-router.post("/send-message", sendMessage);
-
-// Fetch past chat history by sessionId
-router.get("/history/:sessionId", getSessionHistory);
+// 🎯 Tutor Session Routes
+router.post("/sessions", startSession);                       // Start a new tutor session
+router.post("/sessions/:sessionId/messages", sendMessage);     // Send a message in a session
+router.get("/sessions/:sessionId/history", getSessionHistory); // Get chat history
+router.post("/sessions/:sessionId/practice", generatePracticeProblems); // Generate practice problems
+router.post("/sessions/:sessionId/summary", summarizeSession); // Summarize a chat session
 
 export default router;

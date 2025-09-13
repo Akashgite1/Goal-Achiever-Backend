@@ -4,31 +4,45 @@
 
 // controllers/analytics.controller.js
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiErrors } from "../utils/APIErros.js";
-import { ApiResponse } from "../utils/APiResponce.js";
+import { apiErrors } from "../utils/apiErrors.js";
+import { apiResponse } from "../utils/apiResponse.js";
 import { Progress } from "../models/progress.model.js";
 import { Goal } from "../models/goal.model.js";
 import { Journey } from "../models/journey.model.js";
-import { TutorSession } from "../models/chat.model.js";
-import { callAIService } from "../services/aiService.js"; // hypothetical AI helper
+import { Chat } from "../models/chat.model.js";
+import { generateAIResponse, generatePracticeProblemsFromAI, summarizeChatSession } from "../utils/grokService.js"; // hypothetical AI helper
+
+
 
 // Generate summary for a user
 const generateSummary = asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
-    // Aggregate progress, journeys, and goals
+    // Aggregate data
     const progress = await Progress.find({ user: userId });
     const goals = await Goal.find({ user: userId });
     const journeys = await Journey.find({ user: userId });
 
-    // Call AI to generate textual summary
-    const aiSummary = await callAIService({
-        type: "summary",
-        data: { progress, goals, journeys }
-    });
+    // Convert objects into plain text summary input
+    const inputMessages = [
+        {
+            role: "user",
+            content: `Generate a learning summary for the following data:
+            Goals: ${JSON.stringify(goals)}
+            Journeys: ${JSON.stringify(journeys)}
+            Progress: ${JSON.stringify(progress)}`
+        }
+    ];
 
-    return res.status(200).json(new ApiResponse(200, { aiSummary }, "User summary generated"));
+    // Use AI helper (summarizeChatSession)
+    const aiSummary = await summarizeChatSession(inputMessages);
+    console.log("AI Summary:", aiSummary);
+
+    return res
+        .status(200)
+        .json(new apiResponse(200, { aiSummary }, "User summary generated"));
 });
+
 
 // Fetch analytics/statistics for charts
 const getAnalytics = asyncHandler(async (req, res) => {
@@ -42,7 +56,9 @@ const getAnalytics = asyncHandler(async (req, res) => {
         lastUpdated: p.lastUpdated
     }));
 
-    return res.status(200).json(new ApiResponse(200, analytics, "User analytics fetched"));
+    return res
+        .status(200)
+        .json(new apiResponse(200, analytics, "User analytics fetched"));
 });
 
 // Generate action items (AI-driven next steps)
@@ -52,15 +68,21 @@ const getActionItems = asyncHandler(async (req, res) => {
     // Collect relevant progress data
     const progress = await Progress.find({ user: userId });
 
-    // AI generates recommendations
-    const actionItems = await callAIService({
-        type: "actionItems",
-        data: progress
-    });
+    // Build input for AI
+    const inputMessages = [
+        {
+            role: "user",
+            content: `Based on this progress data, suggest personalized next steps:
+            ${JSON.stringify(progress)}`
+        }
+    ];
 
-    return res.status(200).json(new ApiResponse(200, { actionItems }, "Next action items generated"));
+    // Use AI helper (generateAIResponse)
+    const actionItems = await generateAIResponse(inputMessages);
+
+    return res
+        .status(200)
+        .json(new apiResponse(200, { actionItems }, "Next action items generated"));
 });
 
 export { generateSummary, getAnalytics, getActionItems };
-
-

@@ -1,22 +1,25 @@
-// 3. Journey Routes
-
-// /api/journeys
-// POST /suggest → suggestJourney
-// GET /:id → getJourney
-// PUT /:id → updateJourney
-
-
 // routes/journey.route.js
 import express from "express";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { suggestJourney, getJourney, updateJourney } from "../controllers/journey.controller.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
+import {
+  suggestJourney,
+  customizeJourney,
+  getJourney,
+  updateJourney,
+} from "../controllers/journey.controller.js";
 
 const router = express.Router();
 
-// Protected routes
-router.post("/suggest", verifyJWT, suggestJourney); // AI-generated journey suggestion
-router.get("/:id", verifyJWT, getJourney);          // Fetch journey by ID
-router.put("/:id", verifyJWT, updateJourney);       // Update milestones/timeline
+// ✅ Protect all journey routes
+router.use(verifyJWT);
+
+// ✨ Journey Routes
+router.post("/suggest", suggestJourney);   // AI-generated journey suggestion
+router.post("/customize", customizeJourney); // Manually customize a journey
+
+router
+  .route("/:journeyId")  // /api/journeys/:journeyId
+  .get(getJourney)       // Fetch journey by ID
+  .put(updateJourney);   // Update milestones/timeline
 
 export default router;
-

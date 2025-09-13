@@ -11,26 +11,29 @@ import express from "express";
 import {
   scheduleCheckin,
   getCheckins,
-  submitOrUpdateCheckin,
-  cancelCheckin
+  submitCheckin,
+  updateCheckin,
+  deleteCheckin,
 } from "../controllers/checkin.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Protect all routes with JWT middleware
+// ✅ Apply JWT middleware to all routes
 router.use(verifyJWT);
 
-// Schedule a new check-in
-router.post("/", scheduleCheckin);
+// 📌 Check-in routes
+router
+  .route("/")
+  .post(scheduleCheckin) // Create / schedule a new check-in
+  .get(getCheckins);     // Get all check-ins (upcoming & past)
 
-// Fetch all check-ins (upcoming & past)
-router.get("/", getCheckins);
+router
+  .route("/:id")
+  .put(updateCheckin)    // Update a check-in
+  .delete(deleteCheckin); // Delete a check-in
 
-// Submit or update a check-in
-router.put("/:id", submitOrUpdateCheckin);
-
-// Cancel a check-in
-router.delete("/:id", cancelCheckin);
+// 📌 Special action: Submit a check-in
+router.put("/:id/submit", submitCheckin);
 
 export default router;

@@ -12,7 +12,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")
 
         if (!token) {
-            return next(new ApiErrors("You are not authenticated", 401));
+            return next(new apiErrors("You are not authenticated", 401));
         }
 
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,)
@@ -21,14 +21,14 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
         if (!user) {
             // 
-            return next(new ApiErrors("Invalid Access Token", 404));
+            return next(new apiErrors("Invalid Access Token", 404));
         }
 
         req.user = user; // attach the user to the request object
         next(); // call the next middleware or route handler
     } catch (error) {
         console.error("JWT verification error:", error);
-        return next(new ApiErrors("Invalid Access Token", 401));
+        return next(new apiErrors("Invalid Access Token", 401));
     }
 
 })
