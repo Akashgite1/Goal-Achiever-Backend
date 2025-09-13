@@ -3,3 +3,91 @@
 // submitCheckin → record answers/progress
 // updateCheckin → reschedule/change frequency
 // deleteCheckin → cancel
+
+
+// src/controllers/checkin.controller.js
+
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiErrors } from "../utils/APIErros.js";
+import { ApiResponse } from "../utils/APiResponce.js";
+import { Checkin } from "../models/checkin.model.js";
+import mongoose from "mongoose";
+
+// Schedule a new check-in
+const scheduleCheckin = asyncHandler(async (req, res) => {
+    const { goalId, frequency, startDate, time } = req.body;
+
+    if (!goalId || !frequency || !startDate || !time) {
+        throw new ApiErrors(400, "All fields are required: goalId, frequency, startDate, time");
+    }
+
+    const checkin = await Checkin.create({
+        user: req.user._id,
+        goal: goalId,
+        frequency, // daily, weekly, bi-weekly
+        startDate,
+        time,
+        status: "pending" // default status
+    });
+
+    return res.status(201).json(new ApiResponse(201, checkin, "Check-in scheduled successfully"));
+});
+
+// Fetch upcoming & past check-ins
+const getCheckins = asyncHandler(async (req, res) => {
+    const checkins = await Checkin.find({ user: req.user._id })
+        .populate("goal", "title description status")
+        .sort({ startDate: 1 });
+
+    return res.status(200).json(new ApiResponse(200, checkins, "Check-ins fetched successfully"));
+});
+
+// Submit or update check-in progress
+const submitCheckin = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { progress, notes } = req.body;
+
+    const checkin = await Checkin.findOne({ _id: id, user: req.user._id });
+
+    if (!checkin) throw new ApiErrors(404, "Check-in not found");
+
+    checkin.progress = progress || checkin.progress;
+    checkin.notes = notes || checkin.notes;
+    checkin.status = "completed"; // mark as completed
+    checkin.updatedAt = new Date();
+
+    await checkin.save();
+
+    return res.status(200).json(new ApiResponse(200, checkin, "Check-in submitted successfully"));
+});
+
+// Update/reschedule check-in
+const updateCheckin = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { frequency, startDate, time } = req.body;
+
+    const checkin = await Checkin.findOne({ _id: id, user: req.user._id });
+
+    if (!checkin) throw new ApiErrors(404, "Check-in not found");
+
+    if (frequency) checkin.frequency = frequency;
+    if (startDate) checkin.startDate = startDate;
+    if (time) checkin.time = time;
+
+    await checkin.save();
+
+    return res.status(200).json(new ApiResponse(200, checkin, "Check-in updated successfully"));
+});
+
+// Cancel check-in
+const deleteCheckin = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const checkin = await Checkin.findOneAndDelete({ _id: id, user: req.user._id });
+
+    if (!checkin) throw new ApiErrors(404, "Check-in not found or already deleted");
+
+    return res.status(200).json(new ApiResponse(200, null, "Check-in canceled successfully"));
+});
+
+export { scheduleCheckin, getCheckins, submitCheckin, updateCheckin, deleteCheckin };

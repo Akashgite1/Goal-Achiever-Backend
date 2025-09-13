@@ -2,7 +2,7 @@
 // Attach req.user for protected routes
 
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiErrors } from "../utils/APIErros.js";
+import { apiErrors } from "../utils/apiErrors.js";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 

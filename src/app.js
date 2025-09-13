@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import authRoutes from './routes/user.route.js';
 
 
 // creating the express app or the variable
@@ -22,5 +23,18 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 // importing all the routes
+import userRoutes from './routes/user.route.js'
+import{analyticsRoutes} from './routes/analytics.route.js'
+import {chatRoutes} from './routes/chat.route.js'
+import {checkInRoutes} from './routes/check-in.route.js'
+import { goalRoutes }   from './routes/goal.route.js';
+import { journeyRoute } from './routes/journy.route.js';
+
+
+
+
+// all Rotutes
+app.use("/api/users", userRoutes);  // all user routes prefixed with /api/users
+
 
 export { app };
