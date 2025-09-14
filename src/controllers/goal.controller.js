@@ -24,6 +24,7 @@ const createGoal = asyncHandler(async (req, res) => {
         deadline,
         owner: req.user._id,
     });
+    console.log("goal created",goal);
 
     return res
         .status(201)
@@ -33,15 +34,18 @@ const createGoal = asyncHandler(async (req, res) => {
 // Get All Goals for Logged-in User
 const getGoals = asyncHandler(async (req, res) => {
     const goals = await Goal.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    const userId=req.user._id;
+    console.log("goals fetched for user ",{},goals);
     return res.status(200).json(new apiResponse(200, goals, "Goals fetched successfully"));
 });
+
 
 // Get Goal by ID
 const getGoalById = asyncHandler(async (req, res) => {
     const { goalId } = req.params;
 
     const goal = await Goal.findOne({ _id: goalId, owner: req.user._id });
-
+    console.log("goal fetched",goal);
     if (!goal) {
         throw new apiErrors(404, "Goal not found");
     }
@@ -59,6 +63,7 @@ const updateGoal = asyncHandler(async (req, res) => {
         { title, description, status, deadline },
         { new: true, runValidators: true }
     );
+    console.log("goal updated",goal);
 
     if (!goal) {
         throw new apiErrors(404, "Goal not found or update failed");
@@ -72,6 +77,7 @@ const deleteGoal = asyncHandler(async (req, res) => {
     const { goalId } = req.params;
 
     const goal = await Goal.findOneAndDelete({ _id: goalId, owner: req.user._id });
+    console.log("goal deleted",goal);
 
     if (!goal) {
         throw new apiErrors(404, "Goal not found or delete failed");

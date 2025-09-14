@@ -10,37 +10,45 @@ import { Progress } from "../models/progress.model.js";
 import { Goal } from "../models/goal.model.js";
 import { Journey } from "../models/journey.model.js";
 import { Chat } from "../models/chat.model.js";
+import { Analytics } from "../models/analytics.model.js";
 import { generateAIResponse, generatePracticeProblemsFromAI, summarizeChatSession } from "../utils/grokService.js"; // hypothetical AI helper
-
 
 
 // Generate summary for a user
 const generateSummary = asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
-    // Aggregate data
-    const progress = await Progress.find({ user: userId });
-    const goals = await Goal.find({ user: userId });
-    const journeys = await Journey.find({ user: userId });
+    // Fetch user data
+    const progress = await Progress.find({ user: userId }).lean();
+    const goals = await Goal.find({ owner: userId }).lean();
+    const journeys = await Journey.find({ user: userId }).lean();
+    const chat = await Chat.findOne({ user: userId }).lean();
 
-    // Convert objects into plain text summary input
+    // Prepare input for AI
     const inputMessages = [
         {
+            role: "system",
+            content: "You are a helpful AI that generates concise learning summaries based on progress, goals, journeys, and chat messages."
+        },
+        {
             role: "user",
-            content: `Generate a learning summary for the following data:
-            Goals: ${JSON.stringify(goals)}
-            Journeys: ${JSON.stringify(journeys)}
-            Progress: ${JSON.stringify(progress)}`
+            content: `
+            Goals: ${JSON.stringify(goals, null, 2)}
+            Journeys: ${JSON.stringify(journeys, null, 2)}
+            Progress: ${JSON.stringify(progress, null, 2)}
+            Chat Messages: ${chat ? JSON.stringify(chat.messages, null, 2) : "No chat messages"}
+            `
         }
     ];
 
-    // Use AI helper (summarizeChatSession)
+    // Generate summary
     const aiSummary = await summarizeChatSession(inputMessages);
-    console.log("AI Summary:", aiSummary);
+    // console.log("generated summary:", aiSummary);
+    
 
     return res
-        .status(200)
-        .json(new apiResponse(200, { aiSummary }, "User summary generated"));
+        .status(201)
+        .json(new apiResponse(201, { aiSummary }, "Summary generated successfully"));
 });
 
 
@@ -48,13 +56,21 @@ const generateSummary = asyncHandler(async (req, res) => {
 const getAnalytics = asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
-    // Example: calculate completion % per journey
-    const progressData = await Progress.find({ user: userId });
+    // Get progress data
+    const progressData = await Progress.find({ user: userId }).lean();
+
+    // Optionally get Analytics stats
+    const analyticsDoc = await Analytics.findOne({ user: userId }).lean();
+
     const analytics = progressData.map(p => ({
         journeyId: p.journey,
         completionRate: p.completionRate,
-        lastUpdated: p.lastUpdated
+        lastUpdated: p.lastUpdated,
+        velocity: analyticsDoc?.velocity || 0,
+        progressPercent: analyticsDoc?.progress || 0
     }));
+
+    // console.log("fetched analytics:", analytics);
 
     return res
         .status(200)
@@ -65,24 +81,32 @@ const getAnalytics = asyncHandler(async (req, res) => {
 const getActionItems = asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
-    // Collect relevant progress data
-    const progress = await Progress.find({ user: userId });
+    // Get user's progress
+    const progress = await Progress.find({ user: userId }).lean();
 
-    // Build input for AI
+    // Get user's chat messages
+    const chat = await Chat.findOne({ user: userId }).lean();
+
+    // Prepare messages for AI
     const inputMessages = [
         {
+            role: "system",
+            content: "You are a helpful assistant providing personalized next steps for learning progress."
+        },
+        {
             role: "user",
-            content: `Based on this progress data, suggest personalized next steps:
-            ${JSON.stringify(progress)}`
+            content: `Here is the user's progress data:\n${JSON.stringify(progress, null, 2)}
+            \nHere is the chat history:\n${chat ? JSON.stringify(chat.messages, null, 2) : "No chat messages"}`
         }
     ];
 
-    // Use AI helper (generateAIResponse)
+    // Call AI
     const actionItems = await generateAIResponse(inputMessages);
+    // console.log("generated action items:", actionItems);
 
     return res
         .status(200)
-        .json(new apiResponse(200, { actionItems }, "Next action items generated"));
+        .json(new apiResponse(200, { actionItems }, "Action items generated successfully"));
 });
 
 export { generateSummary, getAnalytics, getActionItems };

@@ -35,7 +35,7 @@ import progressRoutes from './routes/progress.route.js';
 // all Rotutes
 app.use("/api/users", userRoutes);  // all user routes prefixed with /api/users
 app.use("/api/analytics", analyticsRoutes); // all analytics routes prefixed with /api/analytics
-app.use("/api/tutor", chatRoutes); // all chat routes prefixed with /api/tutor
+app.use("/api/chat", chatRoutes); // all chat routes prefixed with /api/tutor
 app.use("/api/checkins", checkInRoutes); // all check-in routes prefixed with /api/checkins
 app.use("/api/goals", goalRoutes); // all goal routes prefixed with /api/goals
 app.use("/api/journeys", journeyRoute); // all journey routes prefixed with /api/journeys
